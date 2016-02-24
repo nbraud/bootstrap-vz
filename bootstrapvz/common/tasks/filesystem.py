@@ -139,7 +139,7 @@ class MountSpecials(Task):
 
 		# Create /proc and /sys
 		root.add_mount('none', 'proc', ['--types', 'proc'])
-		root.add_mount('none', 'sys', ['--types', 'sysfs'])
+		root.add_mount('none', 'sys', ['--types', 'sysfs', '--options', 'ro'])
 
 
 class CopyMountTable(Task):
