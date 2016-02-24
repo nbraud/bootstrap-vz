@@ -126,6 +126,11 @@ class MountSpecials(Task):
 			mknod(join(dev, name), mode, makedev(major, minor))
 
 
+		root.add_mount('none', 'dev/pts',
+		               ['--types', 'devpts',
+		                '--options', 'newinstance,ptmxmode=0666'])
+
+		symlink('pts/ptmx', join(dev, 'ptmx'))
 		symlink('/proc/self/fd', join(dev, 'fd'))
 		symlink('fd/0', join(dev, 'stdin'))
 		symlink('fd/1', join(dev, 'stdout'))
@@ -135,7 +140,6 @@ class MountSpecials(Task):
 		# Create /proc and /sys
 		root.add_mount('none', 'proc', ['--types', 'proc'])
 		root.add_mount('none', 'sys', ['--types', 'sysfs'])
-		root.add_mount('none', 'dev/pts', ['--types', 'devpts'])
 
 
 class CopyMountTable(Task):
