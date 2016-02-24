@@ -107,7 +107,32 @@ class MountSpecials(Task):
 	@classmethod
 	def run(cls, info):
 		root = info.volume.partition_map.root
-		root.add_mount('/dev', 'dev', ['--bind'])
+
+		# Create /dev
+		# See https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devices.txt
+		#   and specifically the "Compulsory links" section
+		import os, stat
+		from os import mknod, makedev, symlink
+		from os.path import join
+
+		root.add_mount('none', 'dev', ['--types', 'tmpfs'])
+		dev = join(info.root, 'dev')
+		os.makedirs(join(dev, 'shm'), 0777)
+		os.makedirs(join(dev, 'pts'), 0755)
+
+		mode = 0666 | stat.S_IFCHR
+		for name, major, minor in [ ('null',   1, 3), ('zero',    1, 5), ('full', 1, 7),
+		                            ('random', 1, 8), ('urandom', 1, 9), ('tty',  5, 0) ]:
+			mknod(join(dev, name), mode, makedev(major, minor))
+
+
+		symlink('/proc/self/fd', join(dev, 'fd'))
+		symlink('fd/0', join(dev, 'stdin'))
+		symlink('fd/1', join(dev, 'stdout'))
+		symlink('fd/2', join(dev, 'stderr'))
+		symlink('null', join(dev, 'X0R'))
+
+		# Create /proc and /sys
 		root.add_mount('none', 'proc', ['--types', 'proc'])
 		root.add_mount('none', 'sys', ['--types', 'sysfs'])
 		root.add_mount('none', 'dev/pts', ['--types', 'devpts'])
