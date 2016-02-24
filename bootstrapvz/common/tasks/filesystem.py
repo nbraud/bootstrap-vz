@@ -120,11 +120,13 @@ class MountSpecials(Task):
 		os.makedirs(join(dev, 'shm'), 0777)
 		os.makedirs(join(dev, 'pts'), 0755)
 
-		mode = 0666 | stat.S_IFCHR
 		for name, major, minor in [ ('null',   1, 3), ('zero',    1, 5), ('full', 1, 7),
 		                            ('random', 1, 8), ('urandom', 1, 9), ('tty',  5, 0) ]:
-			mknod(join(dev, name), mode, makedev(major, minor))
+			mknod(join(dev, name), 0666 | stat.S_IFCHR, makedev(major, minor))
 
+                for i in xrange(0,15):
+                        mknod(join(dev, 'nbd%i' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i))
+                        mknod(join(dev, 'nbd%ip1' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i +1))
 
 		root.add_mount('none', 'dev/pts',
 		               ['--types', 'devpts',
