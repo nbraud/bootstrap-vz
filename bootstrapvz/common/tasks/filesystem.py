@@ -125,12 +125,29 @@ class MountSpecials(Task):
                 # The API pseudo-devices (null, zero, full, random, urandom and tty)
 		for name, major, minor in [ ('null',   1, 3), ('zero',    1, 5), ('full', 1, 7),
 		                            ('random', 1, 8), ('urandom', 1, 9), ('tty',  5, 0) ]:
-			mknod(join(dev, name), 0666 | stat.S_IFCHR, makedev(major, minor))
+			mknod(join(dev, name), 0o666 | stat.S_IFCHR, makedev(major, minor))
 
-                for i in xrange(0,15):
-                        mknod(join(dev, 'nbd%i' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i))
-                        mknod(join(dev, 'nbd%ip1' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i +1))
+                # The nbd devices
+                os.makedirs(join(dev, 'mapper'), 0o755)
+                nbd_max_part = int(info.volume._module_param('nbd', 'max_part'))
+                for i in xrange(32 / nbd_max_part):
+                        mknod(join(dev, 'nbd%i' % i),
+                              0o660 | stat.S_IFBLK,
+                              makedev(43, nbd_max_part * i))
+                        for j in xrange(nbd_max_part):
+                                mknod(join(dev, 'nbd%ip%i' % (i,j+1)),
+                                      0o660 | stat.S_IFBLK,
+                                      makedev(43, nbd_max_part * i + j+1))
 
+                                path = '/dev/mapper/nbd%ip%i' % (i,j+1)
+                                if os.path.exists(path):
+                                        assert(os.path.islink(path))
+                                        dest = os.readlink(path)
+                                        symlink(dest, join(info.root, path[1:]))
+
+                                        dev_stat = os.stat(path)
+                                        assert(stat.S_ISBLK(dev_stat.st_mode))
+                                        mknod(join(dev, 'mapper', dest), dev_stat.st_mode, dev_stat.st_rdev)
 
                 # Mount a new devpts instance separate from the host's
                 # See http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/filesystems/devpts.txt
