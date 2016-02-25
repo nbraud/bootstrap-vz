@@ -100,7 +100,7 @@ class MountBoot(Task):
 
 
 class MountSpecials(Task):
-	description = 'Mounting special block devices'
+	description = 'Mounting special devices'
 	phase = phases.os_installation
 	predecessors = [bootstrap.Bootstrap]
 
