@@ -131,6 +131,11 @@ class MountSpecials(Task):
                         mknod(join(dev, 'nbd%i' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i))
                         mknod(join(dev, 'nbd%ip1' % i), 0660 | stat.S_IFBLK, makedev(43, 2*i +1))
 
+
+                # Mount a new devpts instance separate from the host's
+                # See http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/filesystems/devpts.txt
+		os.makedirs(join(dev, 'pts'), 0o755)
+		symlink('pts/ptmx', join(dev, 'ptmx'))
 		root.add_mount('none', 'dev/pts',
 		               ['--types', 'devpts',
 		                '--options', 'newinstance,ptmxmode=0666'])
