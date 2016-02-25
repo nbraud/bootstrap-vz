@@ -110,16 +110,19 @@ class MountSpecials(Task):
 
 		# Create /dev
 		# See https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/Documentation/devices.txt
-		#   and specifically the "Compulsory links" section
 		import os, stat
 		from os import mknod, makedev, symlink
 		from os.path import join
 
+                # First, make a tmpfs out of /dev.  Everything must be gone after umount.
 		root.add_mount('none', 'dev', ['--types', 'tmpfs'])
 		dev = join(info.root, 'dev')
-		os.makedirs(join(dev, 'shm'), 0777)
-		os.makedirs(join(dev, 'pts'), 0755)
 
+                # The GNU libc expects /dev/shm to be a world-writable directory in a tmpfs
+                # This is used by the POSIX shared memory implementation
+		os.makedirs(join(dev, 'shm'), 0o777)
+
+                # The API pseudo-devices (null, zero, full, random, urandom and tty)
 		for name, major, minor in [ ('null',   1, 3), ('zero',    1, 5), ('full', 1, 7),
 		                            ('random', 1, 8), ('urandom', 1, 9), ('tty',  5, 0) ]:
 			mknod(join(dev, name), 0666 | stat.S_IFCHR, makedev(major, minor))
@@ -132,14 +135,14 @@ class MountSpecials(Task):
 		               ['--types', 'devpts',
 		                '--options', 'newinstance,ptmxmode=0666'])
 
-		symlink('pts/ptmx', join(dev, 'ptmx'))
+                # The kernel documentation defines some symlinks as required
 		symlink('/proc/self/fd', join(dev, 'fd'))
 		symlink('fd/0', join(dev, 'stdin'))
 		symlink('fd/1', join(dev, 'stdout'))
 		symlink('fd/2', join(dev, 'stderr'))
 		symlink('null', join(dev, 'X0R'))
 
-		# Create /proc and /sys
+		# Mount /proc and /sys
 		root.add_mount('none', 'proc', ['--types', 'proc'])
 		root.add_mount('none', 'sys', ['--types', 'sysfs', '--options', 'ro'])
 
