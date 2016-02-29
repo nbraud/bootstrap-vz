@@ -164,8 +164,11 @@ class MountSpecials(Task):
 		symlink('fd/2', join(dev, 'stderr'))
 		symlink('null', join(dev, 'X0R'))
 
-		# Mount /proc and /sys
+		# Mount /proc.
+		# It is isolated from the host by the PID/IPC namespace in base/main.py
 		root.add_mount('none', 'proc', ['--types', 'proc'])
+
+		# Mount /sys read-only
 		root.add_mount('none', 'sys', ['--types', 'sysfs', '--options', 'ro'])
 
 
