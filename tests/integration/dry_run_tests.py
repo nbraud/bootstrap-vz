@@ -8,17 +8,12 @@ def test_manifest_generator():
 	each file can successfully be loaded and validated.
 	"""
 
-	from nose.tools import assert_true
 	from bootstrapvz.base.manifest import Manifest
+	from bootstrapvz.base.main import run
 
-	def validate_manifest(path):
+	def dry_run(path):
 		manifest = Manifest(path=path)
-		assert_true(manifest.data)
-		assert_true(manifest.data['name'])
-		assert_true(manifest.data['provider'])
-		assert_true(manifest.data['bootstrapper'])
-		assert_true(manifest.data['volume'])
-		assert_true(manifest.data['system'])
+		run(manifest, dry_run=True)
 
 	import os.path
 	from .. import recursive_glob
@@ -27,5 +22,5 @@ def test_manifest_generator():
 	                         '../../manifests')
 	manifest_paths = chain(recursive_glob(manifests, '*.yml'), recursive_glob(manifests, '*.json'))
 	for manifest_path in manifest_paths:
-		validate_manifest.description = "Validating %s" % os.path.relpath(manifest_path, manifests)
-		yield validate_manifest, manifest_path
+		dry_run.description = "Dry-running %s" % os.path.relpath(manifest_path, manifests)
+		yield dry_run, manifest_path

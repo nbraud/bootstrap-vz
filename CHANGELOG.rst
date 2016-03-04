@@ -1,10 +1,15 @@
 Changelog
 =========
 
-2016-02-24
+2016-03-xx
 ----------
 Nicolas Braud-Santoni:
 	* #293, #294: Confine /dev, /dev/pts and /sys
+
+2016-03-03
+----------
+Anders Ingemann:
+  * Rename integration tests to system tests
 
 2016-02-23
 ----------
