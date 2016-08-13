@@ -108,6 +108,7 @@ class MountSpecials(Task):
     def run(cls, info):
         root = info.volume.partition_map.root
         root.add_mount('/dev', 'dev', ['--bind'])
+        root.add_mount('none', 'tmp', ['--types', 'tmpfs'])
         root.add_mount('none', 'proc', ['--types', 'proc'])
         root.add_mount('none', 'sys', ['--types', 'sysfs'])
         root.add_mount('none', 'dev/pts', ['--types', 'devpts'])
